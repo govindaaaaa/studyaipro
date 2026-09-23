@@ -43,4 +43,9 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "service": "RAG Service",
+        "version": "1.0.0",
+        "model": "all-MiniLM-L6-v2"
+    }
