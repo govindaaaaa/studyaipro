@@ -1,10 +1,9 @@
 import uuid
 from datetime import datetime
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException
 import fitz  # PyMuPDF
 from database import sessions
 from vector_store import VectorStore
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 store = VectorStore()
@@ -33,7 +32,7 @@ def _extract_text(data: bytes, filename: str) -> str:
 @router.post("/")
 async def upload_file(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+    ,
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
@@ -58,7 +57,7 @@ async def upload_file(
 
     doc = {
         "session_id": session_id,
-        "user_id": current_user["_id"],
+        "user_id": "placeholder_user_id",
         "filename": file.filename,
         "chunk_count": len(chunks),
         "char_count": len(text),
@@ -75,9 +74,9 @@ async def upload_file(
 
 
 @router.get("/sessions")
-async def list_sessions(current_user: dict = Depends(get_current_user)):
+async def list_sessions():
     cursor = sessions().find(
-        {"user_id": current_user["_id"]},
+        {"user_id": "placeholder_user_id"},
         {"_id": 0, "session_id": 1, "filename": 1, "chunk_count": 1, "created_at": 1},
     ).sort("created_at", -1).limit(20)
     result = []

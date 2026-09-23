@@ -1,10 +1,9 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from config import settings
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/output", tags=["output"])
 
@@ -21,7 +20,7 @@ class WhatsAppRequest(BaseModel):
 
 
 @router.post("/email")
-async def send_email(body: EmailRequest, current_user: dict = Depends(get_current_user)):
+async def send_email(body: EmailRequest):
     if not settings.smtp_user or not settings.smtp_pass:
         raise HTTPException(status_code=503, detail="Email not configured on server")
 
@@ -43,7 +42,7 @@ async def send_email(body: EmailRequest, current_user: dict = Depends(get_curren
 
 
 @router.post("/whatsapp")
-async def send_whatsapp(body: WhatsAppRequest, current_user: dict = Depends(get_current_user)):
+async def send_whatsapp(body: WhatsAppRequest):
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
         raise HTTPException(status_code=503, detail="WhatsApp/Twilio not configured on server")
 

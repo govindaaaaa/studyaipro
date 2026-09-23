@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from vector_store import VectorStore
 from llm_engine import generate_notes, generate_mcq
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/process", tags=["process"])
 store = VectorStore()
@@ -18,7 +17,7 @@ class ProcessRequest(BaseModel):
 
 
 @router.post("/")
-async def process_session(body: ProcessRequest, current_user: dict = Depends(get_current_user)):
+async def process_session(body: ProcessRequest):
     chunks = await store.get_all(body.session_id)
     if not chunks:
         raise HTTPException(status_code=404, detail="No content found for this session")

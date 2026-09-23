@@ -1,10 +1,9 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from database import chat_history
 from vector_store import VectorStore
 from llm_engine import chat_with_context
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 store = VectorStore()
@@ -21,7 +20,7 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/")
-async def chat(body: ChatRequest, current_user: dict = Depends(get_current_user)):
+async def chat(body: ChatRequest):
     if not body.messages:
         raise HTTPException(status_code=400, detail="No messages provided")
 
@@ -40,7 +39,7 @@ async def chat(body: ChatRequest, current_user: dict = Depends(get_current_user)
 
     await chat_history().insert_one({
         "session_id": body.session_id,
-        "user_id": current_user["_id"],
+        "user_id": "placeholder_user_id",
         "user_message": last_user_msg,
         "assistant_reply": reply,
         "timestamp": datetime.utcnow(),
@@ -50,9 +49,9 @@ async def chat(body: ChatRequest, current_user: dict = Depends(get_current_user)
 
 
 @router.get("/history/{session_id}")
-async def get_history(session_id: str, current_user: dict = Depends(get_current_user)):
+async def get_history(session_id: str):
     cursor = chat_history().find(
-        {"session_id": session_id, "user_id": current_user["_id"]},
+        {"session_id": session_id, "user_id": "placeholder_user_id"},
         {"_id": 0, "user_message": 1, "assistant_reply": 1, "timestamp": 1},
     ).sort("timestamp", 1).limit(100)
     result = []

@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from llm_engine import generate_explanation, generate_flowchart
 from graph_builder import build_concept_graph
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/explain", tags=["explain"])
 
@@ -21,7 +20,7 @@ class ConceptGraphRequest(BaseModel):
 
 
 @router.post("/")
-async def explain(body: ExplainRequest, current_user: dict = Depends(get_current_user)):
+async def explain(body: ExplainRequest):
     if len(body.text.strip()) < 10:
         raise HTTPException(status_code=400, detail="Text too short")
     if len(body.text) > 5000:
@@ -32,7 +31,7 @@ async def explain(body: ExplainRequest, current_user: dict = Depends(get_current
 
 
 @router.post("/flowchart")
-async def flowchart(body: FlowchartRequest, current_user: dict = Depends(get_current_user)):
+async def flowchart(body: FlowchartRequest):
     if len(body.text.strip()) < 20:
         raise HTTPException(status_code=400, detail="Text too short")
 
@@ -41,7 +40,7 @@ async def flowchart(body: FlowchartRequest, current_user: dict = Depends(get_cur
 
 
 @router.post("/concept-graph")
-async def concept_graph(body: ConceptGraphRequest, current_user: dict = Depends(get_current_user)):
+async def concept_graph(body: ConceptGraphRequest):
     if len(body.text.strip()) < 20:
         raise HTTPException(status_code=400, detail="Text too short")
 

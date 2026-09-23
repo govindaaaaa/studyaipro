@@ -1,12 +1,11 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 from fpdf import FPDF
 from database import notes
 from vector_store import VectorStore
 from llm_engine import generate_notes
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 store = VectorStore()
@@ -18,7 +17,7 @@ class NotesRequest(BaseModel):
 
 
 @router.post("/generate")
-async def create_notes(body: NotesRequest, current_user: dict = Depends(get_current_user)):
+async def create_notes(body: NotesRequest):
     chunks = await store.get_all(body.session_id)
     if not chunks:
         raise HTTPException(status_code=404, detail="No content found for this session")
@@ -27,7 +26,7 @@ async def create_notes(body: NotesRequest, current_user: dict = Depends(get_curr
 
     doc = {
         "session_id": body.session_id,
-        "user_id": current_user["_id"],
+        "user_id": "placeholder_user_id",
         "mode": body.mode,
         "content": content,
         "created_at": datetime.utcnow(),
@@ -38,9 +37,9 @@ async def create_notes(body: NotesRequest, current_user: dict = Depends(get_curr
 
 
 @router.get("/session/{session_id}")
-async def get_notes(session_id: str, current_user: dict = Depends(get_current_user)):
+async def get_notes(session_id: str):
     cursor = notes().find(
-        {"session_id": session_id, "user_id": current_user["_id"]},
+        {"session_id": session_id, "user_id": "placeholder_user_id"},
         {"_id": 1, "mode": 1, "content": 1, "created_at": 1},
     ).sort("created_at", -1)
     result = []
@@ -52,9 +51,9 @@ async def get_notes(session_id: str, current_user: dict = Depends(get_current_us
 
 
 @router.get("/export/{session_id}/pdf")
-async def export_notes_pdf(session_id: str, current_user: dict = Depends(get_current_user)):
+async def export_notes_pdf(session_id: str):
     note = await notes().find_one(
-        {"session_id": session_id, "user_id": current_user["_id"]},
+        {"session_id": session_id, "user_id": "placeholder_user_id"},
         sort=[("created_at", -1)],
     )
     if not note:

@@ -1,10 +1,9 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from database import mcq_scores
 from vector_store import VectorStore
 from llm_engine import generate_mcq
-from routers.auth import get_current_user
 
 router = APIRouter(prefix="/mcq", tags=["mcq"])
 store = VectorStore()
@@ -23,7 +22,7 @@ class SubmitRequest(BaseModel):
 
 
 @router.post("/generate")
-async def create_mcq(body: MCQRequest, current_user: dict = Depends(get_current_user)):
+async def create_mcq(body: MCQRequest):
     if not 1 <= body.n <= 20:
         raise HTTPException(status_code=400, detail="n must be between 1 and 20")
 
@@ -36,7 +35,7 @@ async def create_mcq(body: MCQRequest, current_user: dict = Depends(get_current_
 
 
 @router.post("/submit")
-async def submit_mcq(body: SubmitRequest, current_user: dict = Depends(get_current_user)):
+async def submit_mcq(body: SubmitRequest):
     correct = 0
     results = []
     for q in body.questions:
@@ -58,7 +57,7 @@ async def submit_mcq(body: SubmitRequest, current_user: dict = Depends(get_curre
 
     await mcq_scores().insert_one({
         "session_id": body.session_id,
-        "user_id": current_user["_id"],
+        "user_id": "placeholder_user_id",
         "score": correct,
         "total": len(body.questions),
         "score_pct": score_pct,
@@ -75,9 +74,9 @@ async def submit_mcq(body: SubmitRequest, current_user: dict = Depends(get_curre
 
 
 @router.get("/history/{session_id}")
-async def mcq_history(session_id: str, current_user: dict = Depends(get_current_user)):
+async def mcq_history(session_id: str):
     cursor = mcq_scores().find(
-        {"session_id": session_id, "user_id": current_user["_id"]},
+        {"session_id": session_id, "user_id": "placeholder_user_id"},
         {"_id": 0, "score": 1, "total": 1, "score_pct": 1, "created_at": 1},
     ).sort("created_at", -1).limit(10)
     result = []
