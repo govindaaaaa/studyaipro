@@ -1,0 +1,16 @@
+{
+  "name": "studyai-pro-mern",
+  "version": "2.0.0",
+  "description": "StudyAI Pro - MERN Stack with Python RAG Microservice",
+  "private": true,
+  "scripts": {
+    "setup": "./setup.sh",
+    "backend": "cd backend-node && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "rag": "cd rag-service && source venv/bin/activate && uvicorn main:app --port 8001 --reload",
+    "test:rag": "cd rag-service && python test_service.py"
+  },
+  "keywords": ["mern", "ai", "study", "rag", "faiss", "llm"],
+  "author": "",
+  "license": "MIT"
+}

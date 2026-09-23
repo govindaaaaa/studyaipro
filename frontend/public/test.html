@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StudyAI Pro - Quick Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>🧪 StudyAI Pro Test Page</h1>
+    
+    <h2>Step 1: Check Login Status</h2>
+    <button onclick="checkLogin()">Check Login</button>
+    <div id="loginResult"></div>
+    
+    <h2>Step 2: Check Backend</h2>
+    <button onclick="checkBackend()">Test Backend</button>
+    <div id="backendResult"></div>
+    
+    <h2>Step 3: Check Documents</h2>
+    <button onclick="checkDocuments()">Get Documents</button>
+    <div id="documentsResult"></div>
+    
+    <h2>Step 4: Upload Test (Go to Dashboard)</h2>
+    <p>If no documents found above, <a href="/dashboard">go to Dashboard</a> and upload a PDF.</p>
+    
+    <h2>Full Diagnostic</h2>
+    <button onclick="runFullTest()">Run All Tests</button>
+    <div id="fullResult"></div>
+
+    <script>
+        function checkLogin() {
+            const token = localStorage.getItem('token');
+            const result = document.getElementById('loginResult');
+            
+            if (token) {
+                result.innerHTML = '<p class="success">✅ You are logged in!</p>';
+                result.innerHTML += '<p>Token: ' + token.substring(0, 30) + '...</p>';
+            } else {
+                result.innerHTML = '<p class="error">❌ NOT logged in! <a href="/login">Go to Login</a></p>';
+            }
+        }
+        
+        function checkBackend() {
+            const result = document.getElementById('backendResult');
+            result.innerHTML = '<p>Testing backend...</p>';
+            
+            fetch('http://localhost:8000/health')
+                .then(r => r.json())
+                .then(data => {
+                    result.innerHTML = '<p class="success">✅ Backend is running!</p>';
+                    result.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                })
+                .catch(err => {
+                    result.innerHTML = '<p class="error">❌ Backend not accessible!</p>';
+                    result.innerHTML += '<p>Error: ' + err.message + '</p>';
+                    result.innerHTML += '<p>Make sure backend is running on port 8000</p>';
+                });
+        }
+        
+        function checkDocuments() {
+            const token = localStorage.getItem('token');
+            const result = document.getElementById('documentsResult');
+            
+            if (!token) {
+                result.innerHTML = '<p class="error">❌ Please login first!</p>';
+                return;
+            }
+            
+            result.innerHTML = '<p>Fetching documents...</p>';
+            
+            fetch('http://localhost:8000/upload/sessions', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(data => {
+                const count = data.sessions?.length || 0;
+                
+                if (count === 0) {
+                    result.innerHTML = '<p class="warning">⚠️ No documents uploaded yet!</p>';
+                    result.innerHTML += '<p><strong>Action needed:</strong> <a href="/dashboard">Go to Dashboard</a> and upload a PDF file.</p>';
+                } else {
+                    result.innerHTML = '<p class="success">✅ Found ' + count + ' document(s)!</p>';
+                    result.innerHTML += '<h3>Your Documents:</h3>';
+                    result.innerHTML += '<ul>';
+                    data.sessions.forEach(s => {
+                        result.innerHTML += '<li><strong>' + s.filename + '</strong> (ID: ' + s.session_id.substring(0, 8) + '...)</li>';
+                    });
+                    result.innerHTML += '</ul>';
+                    result.innerHTML += '<p class="success">✅ All features should now work! Try Flashcards, Summary, AI Tutor.</p>';
+                }
+            })
+            .catch(err => {
+                result.innerHTML = '<p class="error">❌ Failed to fetch documents!</p>';
+                result.innerHTML += '<p>Error: ' + err.message + '</p>';
+            });
+        }
+        
+        function runFullTest() {
+            const result = document.getElementById('fullResult');
+            result.innerHTML = '<h3>Running full diagnostic...</h3>';
+            
+            const tests = [];
+            
+            // Test 1: Login
+            const token = localStorage.getItem('token');
+            tests.push('1. Login: ' + (token ? '✅ YES' : '❌ NO'));
+            
+            // Test 2: Backend
+            fetch('http://localhost:8000/health')
+                .then(r => r.json())
+                .then(data => {
+                    tests.push('2. Backend: ✅ ' + data.status);
+                    
+                    // Test 3: Documents
+                    return fetch('http://localhost:8000/upload/sessions', {
+                        headers: {'Authorization': 'Bearer ' + token}
+                    });
+                })
+                .then(r => r.json())
+                .then(data => {
+                    const count = data.sessions?.length || 0;
+                    tests.push('3. Documents: ' + (count > 0 ? '✅ ' + count : '❌ 0 (need to upload)'));
+                    
+                    // Show results
+                    result.innerHTML = '<h3>Diagnostic Results:</h3>';
+                    result.innerHTML += '<pre>' + tests.join('\n') + '</pre>';
+                    
+                    if (!token) {
+                        result.innerHTML += '<p class="error">❌ Problem: Not logged in. <a href="/login">Login here</a></p>';
+                    } else if (count === 0) {
+                        result.innerHTML += '<p class="warning">⚠️ Problem: No documents. <a href="/dashboard">Upload a document</a></p>';
+                    } else {
+                        result.innerHTML += '<p class="success">✅ All good! Try the features now!</p>';
+                    }
+                })
+                .catch(err => {
+                    result.innerHTML += '<p class="error">Error: ' + err.message + '</p>';
+                });
+        }
+        
+        // Auto-run on load
+        window.onload = runFullTest;
+    </script>
+</body>
+</html>
