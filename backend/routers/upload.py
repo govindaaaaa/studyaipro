@@ -31,8 +31,7 @@ def _extract_text(data: bytes, filename: str) -> str:
 
 @router.post("/")
 async def upload_file(
-    file: UploadFile = File(...),
-    ,
+    file: UploadFile = File(...)
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
