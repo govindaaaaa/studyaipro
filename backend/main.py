@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import connect_db, close_db
-from routers import auth, upload, chat, notes, mcq, explain, process, output
+from routers import upload, chat, notes, mcq, explain, process, output
 
 
 @asynccontextmanager
@@ -26,7 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
 app.include_router(upload.router)
 app.include_router(chat.router)
 app.include_router(notes.router)
