@@ -1,11 +1,24 @@
+# FastAPI and server
 fastapi==0.115.0
 uvicorn[standard]==0.32.1
+
+# Database
 motor==3.6.0
 pydantic-settings==2.6.1
-groq==0.13.0
+
+# AI/ML - CPU ONLY (no CUDA)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
 sentence-transformers==3.3.1
 faiss-cpu==1.9.0.post1
+
+# LLM
+groq==0.13.0
+
+# Document processing
 pymupdf4llm==0.0.17
+
+# Utilities
 python-dotenv==1.0.1
 python-multipart==0.0.20
 httpx==0.28.1
