@@ -17,6 +17,7 @@ groq==0.13.0
 
 # Document processing
 pymupdf4llm==0.0.17
+fpdf2==2.8.2
 
 # Utilities
 python-dotenv==1.0.1
